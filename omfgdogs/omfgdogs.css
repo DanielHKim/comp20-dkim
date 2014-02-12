@@ -1,0 +1,32 @@
+
+a {
+	background-color: cyan; 
+	color: green;
+	text-decoration: underline; 
+	float:right;
+	position:fixed;
+	bottom:30px;
+	right:5px;
+
+
+}
+
+body {
+	color: black;
+}
+
+@media screen 
+and (min-width : 992px) {
+	body {
+	    background-image:url('omfgdogs.gif');
+	    font-size: 36px;
+	    vertical-align:bottom;
+		color:transparent;
+
+	}
+}
+
+@media only screen 
+and (max-device-width : 992px) {
+	
+}
