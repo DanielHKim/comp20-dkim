@@ -12,4 +12,7 @@ order according to specification.
 
 4. File extension of README: .txt
 
+Forgot to do -a with my commits so almost none of them actually happened which
+is quite a bummer
+
 
