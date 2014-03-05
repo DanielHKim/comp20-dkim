@@ -10,13 +10,10 @@
 	
 	 strobj = JSON.parse(str);
 	 for (i in strobj) {
-		document.write(strobj[i]["company"]);
-		document.write("<br>");
-		document.write(strobj[i]["location"]);
-		document.write("<br>");
-		document.write(strobj[i]["position"]);
-		document.write("<br>");
-		document.write("<br>");
+		document.write("Company: " + strobj[i]["company"] + "<br>");
+		document.write("Location: " + strobj[i]["location"] + "<br>");
+		document.write("Position: " + strobj[i]["position"] + "<br>" 
+			       + "<br>");
 	 }
      }
     </script>
