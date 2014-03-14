@@ -1,11 +1,12 @@
 var lat = 0;
 var lng = 0;
-var req = new XMLHttpRequest();
+var req;
 var myloc = new google.maps.LatLng(lat, lng);
 var map;
 var infoBox = new google.maps.InfoWindow();
 var places;
 var mark;
+var jsontxt;
 var options = {
     zoom: 13,
     center: myloc,
@@ -13,6 +14,13 @@ var options = {
 };
 var stations;
 var sched;
+
+try {
+    req = new XMLHttpRequest();
+}
+catch(ms1) {
+    document.getElementById("text").innerHTML = "IE not supported :(";
+}
 
 function init() {
 
@@ -46,16 +54,16 @@ function range(begin, end, step) {
     if (typeof step == "undefined") {
         step = 1;
     };
-    if((step > 0 && begin >= end || (step < 0 && begin <= end)) {
+    if((step > 0 && begin >= end || (step < 0 && begin <= end))) {
         return [];
     };
-       var result = [];
-       for (var i = begin; step > 0 ? i < end : i > end; i += step) {
-           result.push(i);
-       }
-       return result;
-      }
+    var result = [];
+    for (var i = begin; step > 0 ? i < end : i > end; i += step) {
+        result.push(i);
+    }
+    return result;
 }
+
 
 function renderMap() {
     myloc = new google.maps.LatLng(lat, lng);
@@ -85,17 +93,17 @@ function renderMap() {
                         position: new google.maps.LatLng(parseFloat(stations[i][2]), parseFloat(stations[i][3])),
                         title:stations [i][1],
                         map: map,
-                        icon: = "http://maps.google.com/mapfiles/kml/shapes/rail.png"
+                        icon: "http://maps.google.com/mapfiles/kml/shapes/rail.png"
                     });
                     stationMarker.setMap(map);
 
-                    var google.maps.event.addListener(stationMarker, 'click', function() {
+                    google.maps.event.addListener(stationMarker, 'click', function() {
                         infoBox.setContent(stationMarker.title);
                         infoBox.open(map, stationMarker);
                     });
                 }
 
-                var Path = new google.maps.Polyline({
+                Path = new google.maps.Polyline({
                     Path: coords,
                     geodesic:true,
                     strokeColor: '#0059FC',
@@ -103,7 +111,7 @@ function renderMap() {
                     strokeWeight: 6
                 });
 
-                path.setMap(map);
+                Path.setMap(map);
             }
             if (sched.line == "orange") {
                 for (i in range(12, 31)) {
@@ -116,13 +124,13 @@ function renderMap() {
 
                     });
                     stationMarker.setMap(map);
-                    var google.maps.event.addListener(station_mark, 'click', function() {
+                    google.maps.event.addListener(station_mark, 'click', function() {
                         infoBox.setContent(station_mark.title);
                         infoBox.open(map, station_mark);
                     });
                 }
 
-                var Path = new google.maps.Polyline({
+                Path = new google.maps.Polyline({
                     path: Coordinates,
                     geodesic: true,
                     strokeColor: '#FFA500',
@@ -143,13 +151,13 @@ function renderMap() {
 
                     });
                     stationMarker.setMap(map);
-                    var google.maps.event.addListener(station_mark, 'click', function() {
+                    google.maps.event.addListener(station_mark, 'click', function() {
                         infoBox.setContent(station_mark.title);
                         infoBox.open(map, station_mark);
                     });
                 }
 
-                var Path = new google.maps.Polyline({
+                Path = new google.maps.Polyline({
                     path: Coordinates,
                     geodesic: true,
                     strokeColor: '#FF0000',
@@ -160,7 +168,7 @@ function renderMap() {
                 Path.setMap(map);
             }
         }
-        else if (xhr.readyState == 4 && xhr.status == 500)  {
+        else if (mbtaxhr.readyState == 4 && mbtaxhr.status == 500)  {
             alert("Failure!");
         }
 
@@ -173,6 +181,11 @@ function renderMap() {
 function importCSV() {
     var request = new XMLHttpRequest();
     request.open("GET", "listofstations.txt", false);
+    request.onreadystatechange = function () {
+        if (request.readyState == 4 && request.status == 200) {
+            jsontxt = request.responseText.stringify();
 
-
+        }
+    }
+    request.send("");
 }
