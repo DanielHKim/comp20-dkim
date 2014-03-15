@@ -7,8 +7,8 @@ var myloc = new google.maps.LatLng(lat, lng);
 var map;
 var infoBox = new google.maps.InfoWindow();
 var places;
-var mark;
-var strobj;
+var pers_loc;
+
 var options = {
     zoom: 13,
     center: myloc,
@@ -25,12 +25,11 @@ try {
     req = new XMLHttpRequest();
 }
 catch(ms1) {
-    document.getElementById("text").innerHTML = "IE not supported :(";
+    document.getElementById("text").innerHTML = "IE not supported";
 }
 
 function init() 
 {
-
     getMyLocation();
     importCSV();
 }
@@ -47,15 +46,27 @@ function draw_dist()
     });
 }
 
+function add_dist() 
+{
+    pers_loc.setTitle("You are here, nearest T stop is " + smallest + " miles away.");
+
+    infoBox.setContent(pers_loc.title);
+    infoBox.open(map, pers_loc);
+
+    google.maps.event.addListener(pers_loc, 'click', function() {
+        infoBox.setContent(pers_loc.title);
+        infoBox.open(map, pers_loc);
+    });
+}
+
 function getMyLocation() 
 {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
             lat = position.coords.latitude;
             lng = position.coords.longitude;
-
             if(lat !=0 && lng != 0) {
-                map = new google.maps.Map(document.getElementById("map_canvas"), options);
+                map = new google.maps.Map(document.getElementById("map"), options);
                 renderMap();
             }
 
@@ -120,7 +131,7 @@ function dist(color)
         var x2 = lng2 - lng1;
         var d_lng = x2.toRad();
 
-        var a = Math.xin(d_lat / 2) * Math.sin(d_lat / 2) + 
+        var a = Math.sin(d_lat / 2) * Math.sin(d_lat / 2) + 
             Math.cos(lat1.toRad()) * Math.cos(lat2.toRad()) * 
             Math.sin(d_lng/2) * Math.sin(d_lng/2); 
 
@@ -134,7 +145,7 @@ function dist(color)
         }
     }
 
-    smalles = min_dist;
+    smallest = min_dist;
     closest = pts[index];
 
     draw_dist();
@@ -148,7 +159,7 @@ function renderMap() {
     map.panTo(myloc);
 
     marker = new google.maps.Marker({
-        position: me,
+        position: myloc,
         title: "You are here",
         map: map
     });
@@ -164,8 +175,8 @@ function renderMap() {
             sched = JSON.parse(mbtaxhr.responseText);
 
             if (sched["line"] == "blue") {
-                for (var i in range(0, 12)) {
-                    coords.push(new google.maps.LatLng(parseFloat(stations[i][2]), parseFloat(stations[i][3])));
+                for (var i = 0; i < 12; i++) {
+                    coords.push(new google.maps.LatLng(parseFloat(stations[i][2]),parseFloat(stations[i][3])));
 
                     setMark(parseFloat(stations[i][2]), parseFloat(stations[i][3]), stations[i][1], blueIcon, "blue");
                 }
@@ -182,13 +193,13 @@ function renderMap() {
             }
 
             if (sched["line"] == "orange") {
-                for (var i in range(12, 31)) {
+                for (var i = 12; i < 31; i++) {
                     coords.push(new google.maps.LatLng(parseFloat(stations[i][2]),parseFloat(stations[i][3])));
                     setMark(parseFloat(stations[i][2]), parseFloat(stations[i][3]), stations[i][1], blueIcon, "orange");
                 }
 
                 var Path = new google.maps.Polyline({
-                    path: Coordinates,
+                    path: coords,
                     geodesic: true,
                     strokeColor: '#FFA500',
                     strokeOpacity: 1.0,
@@ -200,18 +211,18 @@ function renderMap() {
             }
             
             if (sched["line"] == "red") {
-                for (var i in range(31,49))   {
+                for (var i = 31; i < 49; i++)   {
                     coords.push(new google.maps.LatLng(parseFloat(stations[i][2]),parseFloat(stations[i][3])));
                     setMark(parseFloat(stations[i][2]), parseFloat(stations[i][3]), stations[i][1], blueIcon, "red");
                 }
                 red_coords.push(new google.maps.LatLng(42.320685,-71.052391));
-                for (var i in range(49, 53))   {
+                for (var i = 49; i < 53; i++)   {
                     red_coords.push(new google.maps.LatLng(parseFloat(stations[i][2]),parseFloat(stations[i][3])));
                     setMark(parseFloat(stations[i][2]), parseFloat(stations[i][3]), stations[i][1], blueIcon, "red");
                 }
 
                 var Path = new google.maps.Polyline({
-                    path: Coordinates,
+                    path: coords,
                     geodesic: true,
                     strokeColor: '#FF0000',
                     strokeOpacity: 1.0,
@@ -219,7 +230,7 @@ function renderMap() {
                 });
 
                 var Path2 = new google.maps.Polyline({
-                    path: redCoords,
+                    path: red_coords,
                     geodesic: true,
                     strokeColor: '#FF0000',
                     strokeOpacity: 1.0,
@@ -246,7 +257,7 @@ function tablemake(title)
 
     var htmltable = "<p>"+title+"</p><table style='width:200px'><tr><th>Direction</th><th>Time Remaining</th></tr>";
 
-    for (trip in sched.schedule) {
+    for (trip in sched["schedule"]) {
         var predictions = sched["schedule"][trip]["Predictions"];
 
         for (stop in predictions) {
@@ -260,14 +271,14 @@ function tablemake(title)
 
 
     for (var i in directions) {
-        htmltable = htmltable + "<tr><td>"+dirs[i]+"</td><td>"+tims[i].toString()+"</td></tr>";
+        htmltable = htmltable + "<tr><td>"+directions[i]+"</td><td>"+times[i].toString()+"</td></tr>";
     }
 
     return htmltable + "</table>";
 }
 
 function setMark(lat, lng, title, icon, color) {
-    var mark = new google.maps.Marker({
+    var newmark = new google.maps.Marker({
         position: new google.maps.LatLng(lat, lng),
         map: map,
         title: title,
@@ -275,21 +286,21 @@ function setMark(lat, lng, title, icon, color) {
     });
 
     var table = tablemake(title);
-    mark['infoBox'] = new google.maps.InfoWindow({
+    newmark['infoBox'] = new google.maps.InfoWindow({
         content: table
     });
-    google.maps.event.addListener(mark, 'click', function() {
+    google.maps.event.addListener(newmark, 'click', function() {
         this['infoBox'].open(map, this);
     });
 
     if (color == "blue") {
-        blue.push(mark);
+        blue.push(newmark);
     }
     else if (color == "orange") {
-        orange.push(mark)
+        orange.push(newmark)
     }
     else if (color == "red") {
-        red.push(mark);
+        red.push(newmark);
     }
     
 }
@@ -303,14 +314,15 @@ function importCSV()
         if (request.readyState == 4 && request.status == 200) {
             var txt = request.responseText.toString();
             var txtlines = txt.split('\n');
-            var hdrs = txt[0].split(',');
+            var hdrs = txtlines[0].split(',');
 
             var lines = new Array();
 
-            for (var i in range(0, hdrs.length, 4)) {
+            for (var i = 0; i < hdrs.length; i += 4) {
                 lines.push([hdrs[i], hdrs[i+1], hdrs[i+2], hdrs[i+3]]);
             }
 
+//            console.log(lines);
             stations = lines;
 
         }
