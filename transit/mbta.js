@@ -1,5 +1,7 @@
 var lat = 0;
 var lng = 0;
+var shortest = 0;
+var closest;
 var req;
 var myloc = new google.maps.LatLng(lat, lng);
 var map;
@@ -14,6 +16,10 @@ var options = {
 };
 var stations;
 var sched;
+var red = new Array();
+var blue = new Array();
+var orange = new Array();
+var blueIcon = "http://maps.google.com/mapfiles/kml/shapes/rail.png";
 
 try {
     req = new XMLHttpRequest();
@@ -22,13 +28,27 @@ catch(ms1) {
     document.getElementById("text").innerHTML = "IE not supported :(";
 }
 
-function init() {
+function init() 
+{
 
     getMyLocation();
     importCSV();
 }
 
-function getMyLocation() {
+function draw_dist() 
+{
+    var pt = [myloc, closest.getPosition()];
+    var Path = new google.maps.Polyline({
+        path: pt,
+        geodesic: true,
+        strokeColor: '#CCCCCC',
+        strokeOpacity: 0.85,
+        strokeWeight: 12
+    });
+}
+
+function getMyLocation() 
+{
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
             lat = position.coords.latitude;
@@ -46,7 +66,8 @@ function getMyLocation() {
     }
 }
 
-function range(begin, end, step) {
+function range(begin, end, step) 
+{
     if (typeof end == "undefined") {
         end = begin;
         begin = 0;
@@ -65,6 +86,63 @@ function range(begin, end, step) {
 }
 
 
+function dist(color)
+{
+    var pts = new Array();
+    var results = new Array();
+
+    if (color == "red") {
+        pts = red;
+    }
+    if (color == "orange") {
+        pts = orange;
+    }
+    if (color == "blue") {
+        pts = blue;
+    }
+
+    Number.prototype.toRad = function() {
+        return this * Math.PI / 180;
+    }
+
+    var min_dist = 1000;
+    var index;
+
+    for (var i in range(0, pts.length)) {
+        var lat2 = lat;
+        var lng2 = lng;
+        var lat1 = pts[i].getPosition().lat();
+        var lng1 = pts[i].getPosition().lng();
+
+        var R = 6371;
+        var x1 = lat2 - lat1;
+        var d_lat = x1.toRad();
+        var x2 = lng2 - lng1;
+        var d_lng = x2.toRad();
+
+        var a = Math.xin(d_lat / 2) * Math.sin(d_lat / 2) + 
+            Math.cos(lat1.toRad()) * Math.cos(lat2.toRad()) * 
+            Math.sin(d_lng/2) * Math.sin(d_lng/2); 
+
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        var d = R * c;
+
+        if (d < min_dist) {
+            min_dist = d;
+            index = i;
+        }
+    }
+
+    smalles = min_dist;
+    closest = pts[index];
+
+    draw_dist();
+
+}
+
+
+
 function renderMap() {
     myloc = new google.maps.LatLng(lat, lng);
     map.panTo(myloc);
@@ -75,123 +153,168 @@ function renderMap() {
         map: map
     });
 
-    google.maps.event.addListener(marker, 'click', function() {
-        infoBox.setContent(marker.title);
-        infoBox.open(map, marker);
-    });
 
     mbtaxhr = new XMLHttpRequest();
     mbtaxhr.open("GET", "http://mbtamap.herokuapp.com/mapper/rodeo.json", true);
     mbtaxhr.onreadystatechange = function() {
         if(mbtaxhr.readyState == 4 && mbtaxhr.status == 200) {
-            var coords = [];
-            sched = JSON.parse(strobj);
-            if (sched.line == "Blue") {
-                for (i in range(0, 12)) {
+            var coords = new Array();
+            var red_coords = new Array();
+
+            sched = JSON.parse(mbtaxhr.responseText);
+
+            if (sched["line"] == "blue") {
+                for (var i in range(0, 12)) {
                     coords.push(new google.maps.LatLng(parseFloat(stations[i][2]), parseFloat(stations[i][3])));
-                    stationMarker = new google.maps.Marker({
-                        position: new google.maps.LatLng(parseFloat(stations[i][2]), parseFloat(stations[i][3])),
-                        title:stations [i][1],
-                        map: map,
-                        icon: "http://maps.google.com/mapfiles/kml/shapes/rail.png"
-                    });
-                    stationMarker.setMap(map);
 
-                    google.maps.event.addListener(stationMarker, 'click', function() {
-                        infoBox.setContent(stationMarker.title);
-                        infoBox.open(map, stationMarker);
-                    });
+                    setMark(parseFloat(stations[i][2]), parseFloat(stations[i][3]), stations[i][1], blueIcon, "blue");
                 }
 
-                Path = new google.maps.Polyline({
-                    Path: coords,
-                    geodesic:true,
-                    strokeColor: '#0059FC',
+                var Path = new google.maps.Polyline({
+                    path: coords,
+                    geodesic: true,
+                    strokeColor: "#0059FC",
                     strokeOpacity: 1.0,
-                    strokeWeight: 6
+                    strokeWeight: 8
                 });
-
                 Path.setMap(map);
+                dist("blue");
             }
-            if (sched.line == "Orange") {
-                for (i in range(12, 31)) {
-                    coords.push(new google.maps.LatLng(parseFloat(stations[i][2]),parseFloat(stations[i][3])));
-                    stationMarker = new google.maps.Marker({
-                        position: new google.maps.LatLng(parseFloat(stations[i][2]),parseFloat(stations[i][3])),
-                        title: stations[i][1],
-                        map: map,
-                        icon: "http://maps.google.com/mapfiles/kml/shapes/rail.png"
 
-                    });
-                    stationMarker.setMap(map);
-                    google.maps.event.addListener(station_mark, 'click', function() {
-                        infoBox.setContent(station_mark.title);
-                        infoBox.open(map, station_mark);
-                    });
+            if (sched["line"] == "orange") {
+                for (var i in range(12, 31)) {
+                    coords.push(new google.maps.LatLng(parseFloat(stations[i][2]),parseFloat(stations[i][3])));
+                    setMark(parseFloat(stations[i][2]), parseFloat(stations[i][3]), stations[i][1], blueIcon, "orange");
                 }
 
-                Path = new google.maps.Polyline({
+                var Path = new google.maps.Polyline({
                     path: Coordinates,
                     geodesic: true,
                     strokeColor: '#FFA500',
                     strokeOpacity: 1.0,
-                    strokeWeight: 6
+                    strokeWeight: 8
                 });
 
                 Path.setMap(map);
+                dist("orange");
             }
-            if (sched.line == "Red") {
-                for (i in range(31, 53))   {
+            
+            if (sched["line"] == "red") {
+                for (var i in range(31,49))   {
                     coords.push(new google.maps.LatLng(parseFloat(stations[i][2]),parseFloat(stations[i][3])));
-                    stationMarker = new google.maps.Marker({
-                        position: new google.maps.LatLng(parseFloat(stations[i][2]),parseFloat(stations[i][3])),
-                        title: stations[i][1],
-                        map: map,
-                        icon: "http://maps.google.com/mapfiles/kml/shapes/rail.png"
-
-                    });
-                    stationMarker.setMap(map);
-                    google.maps.event.addListener(station_mark, 'click', function() {
-                        infoBox.setContent(station_mark.title);
-                        infoBox.open(map, station_mark);
-                    });
+                    setMark(parseFloat(stations[i][2]), parseFloat(stations[i][3]), stations[i][1], blueIcon, "red");
+                }
+                red_coords.push(new google.maps.LatLng(42.320685,-71.052391));
+                for (var i in range(49, 53))   {
+                    red_coords.push(new google.maps.LatLng(parseFloat(stations[i][2]),parseFloat(stations[i][3])));
+                    setMark(parseFloat(stations[i][2]), parseFloat(stations[i][3]), stations[i][1], blueIcon, "red");
                 }
 
-                Path = new google.maps.Polyline({
+                var Path = new google.maps.Polyline({
                     path: Coordinates,
                     geodesic: true,
                     strokeColor: '#FF0000',
                     strokeOpacity: 1.0,
-                    strokeWeight: 6
+                    strokeWeight: 8
                 });
 
+                var Path2 = new google.maps.Polyline({
+                    path: redCoords,
+                    geodesic: true,
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 1.0,
+                    strokeWeight: 8
+                });
                 Path.setMap(map);
+                Path2.setMap(map);
+                dist("red");
             }
         }
-        else if (mbtaxhr.readyState == 4 && mbtaxhr.status == 500)  {
-            alert("Failure!");
+        else if (mbtaxhr.readyState == 4 && mbtaxhr.status == 500) {
+            alert("Failure");
         }
-
+        
     };
 
-    mbtaxhr.send(null);
-
+    mbtaxhr.send("");
 }
 
-function importCSV() {
-/*
+function tablemake(title) 
+{
+    var directions = new Array();
+    var times = new Array();
+
+    var htmltable = "<p>"+title+"</p><table style='width:200px'><tr><th>Direction</th><th>Time Remaining</th></tr>";
+
+    for (trip in sched.schedule) {
+        var predictions = sched["schedule"][trip]["Predictions"];
+
+        for (stop in predictions) {
+            var whichstop = predictions[stop];
+            if (whichstop["Stop"] == title) {
+                directions.push(sched["schedule"][trip]["Destination"]);
+                times.push(whichstop["Seconds"]);
+            }
+        }
+    }
+
+
+    for (var i in directions) {
+        htmltable = htmltable + "<tr><td>"+dirs[i]+"</td><td>"+tims[i].toString()+"</td></tr>";
+    }
+
+    return htmltable + "</table>";
+}
+
+function setMark(lat, lng, title, icon, color) {
+    var mark = new google.maps.Marker({
+        position: new google.maps.LatLng(lat, lng),
+        map: map,
+        title: title,
+        icon: icon
+    });
+
+    var table = tablemake(title);
+    mark['infoBox'] = new google.maps.InfoWindow({
+        content: table
+    });
+    google.maps.event.addListener(mark, 'click', function() {
+        this['infoBox'].open(map, this);
+    });
+
+    if (color == "blue") {
+        blue.push(mark);
+    }
+    else if (color == "orange") {
+        orange.push(mark)
+    }
+    else if (color == "red") {
+        red.push(mark);
+    }
+    
+}
+
+function importCSV() 
+{
+
     var request = new XMLHttpRequest();
     request.open("GET", "listofstations.txt", false);
     request.onreadystatechange = function () {
         if (request.readyState == 4 && request.status == 200) {
-            jsontxt = request.responseText.stringify();
+            var txt = request.responseText.toString();
+            var txtlines = txt.split('\n');
+            var hdrs = txt[0].split(',');
+
+            var lines = new Array();
+
+            for (var i in range(0, hdrs.length, 4)) {
+                lines.push([hdrs[i], hdrs[i+1], hdrs[i+2], hdrs[i+3]]);
+            }
+
+            stations = lines;
 
         }
-    }
+    };
     request.send("");
-*/
-    var str = '[{"color":"blue","stations":[{"name":"Wonderland","lat":42.41342,"lng":-70.991648},{"name":"Revere Beach","lat":42.40784254,"lng":-70.99253321},{"name":"Beachmont","lat":42.39754234,"lng":-70.99231944},{"name":"Suffolk Downs","lat":42.39050067,"lng":-70.99712259},{"name":"Orient Heights","lat":42.386867,"lng":-71.004736},{"name":"Wood Island","lat":42.3796403,"lng":-71.02286539},{"name":Airport,"lat":42.374262,"lng":-71.030395},{"name":"Maverick","lat":42.36911856,"lng":-71.03952958},{"name":"Aquarium","lat":42.359784,"lng":-71.051652},{"name":"State Street","lat":42.358978,"lng":-71.057598},{"name":Government Center,"lat":42.359705,"lng":-71.059215},{"name":"Bowdoin","lat":42.361365,"lng":-71.062037}]},{"color":"orange","stations":[{"name":"Oak Grove","lat":42.43668,"lng":-71.071097},{"name":"Malden Center","lat":42.426632,"lng":-71.07411},{"name":"Wellington","lat":42.40237,"lng":-71.077082},{"name":"Sullivan","lat":42.383975,"lng":-71.076994},{"name":"Community College","lat":42.373622,"lng":-71.069533},{"name":"North Station","lat":42.365577,"lng":-71.06129},{"name":"Haymarket","lat":42.363021,"lng":-71.05829},{"name":"State Street","lat":42.358978,"lng":-71.057598},{"name":"Downtown Crossing","lat":42.355518,"lng":-71.060225},{"name":"Chinatown","lat":42.352547,"lng":-71.062752},{"name":"Tufts Medical","lat":42.349662,"lng":-71.063917},{"name":"Back Bay","lat":42.34735,"lng":-71.075727},{"name":"Mass Ave","lat":42.341512,"lng":-71.083423},{"name":"Ruggles","lat":42.336377,"lng":-71.088961},{"name":"Roxbury Crossing","lat":42.331397,"lng":-71.095451},{"name":"Jackson Square","lat":42.323132,"lng":-71.099592},{"name":"Stony Brook","lat":42.317062,"lng":-71.104248},{"name":"Green Street","lat":42.310525,"lng":-71.107414},{"name":"Forest Hills","lat":42.300523,"lng":-71.113686}],{"color":"red","stations":[{"name":"Alewife","lat":42.395428,"lng":-71.142483},{"name":"Davis","lat":42.39674,"lng":-71.121815},{"name":"Porter Square","lat":42.3884,"lng":-71.119149},{"name":"Harvard Square","lat":42.373362,"lng":-71.118956},{"name":"Central Square","lat":42.365486,"lng":-71.103802},{"name":"Kendall/MIT","lat":42.36249079,"lng":-71.08617653},{"name":"Charles/MGH","lat":42.361166,"lng":-71.070628},{"name":"Park Street","lat":42.35639457,"lng":-71.0624242},{"name":"Downtown Crossing","lat":42.355518,"lng":-71.060225},{"name":"South Station","lat":42.352271,"lng":-71.055242},{"name":"Broadway","lat":42.342622,"lng":-71.056967},{"name":"Andrew","lat":42.330154,"lng":-71.057655},{"name":"JFK/UMass","lat":42.320685,"lng":-71.052391},{"name":"North Quincy","lat":42.275275,"lng":-71.029583},{"name":"Wollaston","lat":42.2665139,"lng":-71.0203369},{"name":"Quincy Center","lat":42.251809,"lng":-71.005409},{"name":"Quincy Adams","lat":42.233391,"lng":-71.007153,
-Red,Braintree,42.2078543,-71.0011385},{"name":"Savin Hill","lat":42.31129,"lng":-71.053331},{"name":"Fields Corner","lat":42.300093,"lng":-71.061667},{"name":"Shawmut","lat":42.29312583,"lng":-71.06573796},{"name":"Ashmont","lat":42.284652,"lng":-71.064489}]';
-    strobj = JSON.parse(str);
 
 }
