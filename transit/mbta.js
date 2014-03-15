@@ -19,7 +19,7 @@ var sched;
 var red = new Array();
 var blue = new Array();
 var orange = new Array();
-var blueIcon = "http://maps.google.com/mapfiles/kml/shapes/rail.png";
+var blueIcon = "long-distance-train.jpg";
 
 try {
     req = new XMLHttpRequest();
@@ -34,18 +34,6 @@ function init()
     importCSV();
 }
 
-function draw_dist() 
-{
-    var pt = [myloc, closest.getPosition()];
-    var Path = new google.maps.Polyline({
-        path: pt,
-        geodesic: true,
-        strokeColor: '#CCCCCC',
-        strokeOpacity: 0.85,
-        strokeWeight: 12
-    });
-}
-
 function add_dist() 
 {
     pers_loc.setTitle("You are here, nearest T stop is " + smallest + " miles away.");
@@ -58,6 +46,23 @@ function add_dist()
         infoBox.open(map, pers_loc);
     });
 }
+
+
+function draw_dist() 
+{
+    var pt = [myloc, closest.getPosition()];
+    var Path = new google.maps.Polyline({
+        path: pt,
+        geodesic: true,
+        strokeColor: '#CCCCCC',
+        strokeOpacity: 0.85,
+        strokeWeight: 12
+    });
+
+    Path.setMap(map);
+    add_dist();
+}
+
 
 function getMyLocation() 
 {
@@ -158,7 +163,7 @@ function renderMap() {
     myloc = new google.maps.LatLng(lat, lng);
     map.panTo(myloc);
 
-    marker = new google.maps.Marker({
+    pers_loc = new google.maps.Marker({
         position: myloc,
         title: "You are here",
         map: map
