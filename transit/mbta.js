@@ -190,8 +190,8 @@ function renderMap() {
                     path: coords,
                     geodesic: true,
                     strokeColor: "#0059FC",
-                    strokeOpacity: 1.0,
-                    strokeWeight: 8
+                    strokeOpacity: 0.9,
+                    strokeWeight: 12
                 });
                 Path.setMap(map);
                 dist("blue");
@@ -207,8 +207,8 @@ function renderMap() {
                     path: coords,
                     geodesic: true,
                     strokeColor: '#FFA500',
-                    strokeOpacity: 1.0,
-                    strokeWeight: 8
+                    strokeOpacity: 0.9,
+                    strokeWeight: 12
                 });
 
                 Path.setMap(map);
@@ -230,16 +230,16 @@ function renderMap() {
                     path: coords,
                     geodesic: true,
                     strokeColor: '#FF0000',
-                    strokeOpacity: 1.0,
-                    strokeWeight: 8
+                    strokeOpacity: 0.9,
+                    strokeWeight: 12
                 });
 
                 var Path2 = new google.maps.Polyline({
                     path: red_coords,
                     geodesic: true,
                     strokeColor: '#FF0000',
-                    strokeOpacity: 1.0,
-                    strokeWeight: 8
+                    strokeOpacity: 0.9,
+                    strokeWeight: 12
                 });
                 Path.setMap(map);
                 Path2.setMap(map);
