@@ -190,7 +190,7 @@ function renderMap() {
                     path: coords,
                     geodesic: true,
                     strokeColor: "#0059FC",
-                    strokeOpacity: 0.9,
+                    strokeOpacity: 0.8,
                     strokeWeight: 12
                 });
                 Path.setMap(map);
@@ -207,7 +207,7 @@ function renderMap() {
                     path: coords,
                     geodesic: true,
                     strokeColor: '#FFA500',
-                    strokeOpacity: 0.9,
+                    strokeOpacity: 0.8,
                     strokeWeight: 12
                 });
 
@@ -230,7 +230,7 @@ function renderMap() {
                     path: coords,
                     geodesic: true,
                     strokeColor: '#FF0000',
-                    strokeOpacity: 0.9,
+                    strokeOpacity: 0.8,
                     strokeWeight: 12
                 });
 
@@ -238,7 +238,7 @@ function renderMap() {
                     path: red_coords,
                     geodesic: true,
                     strokeColor: '#FF0000',
-                    strokeOpacity: 0.9,
+                    strokeOpacity: 0.8,
                     strokeWeight: 12
                 });
                 Path.setMap(map);
