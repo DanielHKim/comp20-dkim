@@ -21,23 +21,16 @@
 		var update = newlist.innerHTML;
 
 		ul.insertBefore(newlist, ul.firstChild);
-		localStorage.setItem("entry", update);
+		localStorage.setItem(new Date().getTime(), update);
 
 	}
 	
 	function reload_list() 
 	{
-/*
-		var list = document.getElementById("status_list");
-		output = "";
-		for (key in localStorage) {
-			output = output + "<p>" + localStorage[key] + "</p>\n";
-		}
-		list.innerHTML = output;
-*/
 		var ul = document.getElementById("status_list");
-		var newlist = document.createElement('li');
+
 		for (key in localStorage) {
+			var newlist = document.createElement('li');
 			newlist.innerHTML = localStorage[key];
 			ul.insertBefore(newlist, ul.firstChild);
 		}
