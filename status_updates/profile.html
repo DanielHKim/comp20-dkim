@@ -21,24 +21,32 @@
 		var update = newlist.innerHTML;
 
 		ul.insertBefore(newlist, ul.firstChild);
-		localStorage["entry"] = JSON.stringify(update);
+		localStorage.setItem("entry", update);
 
 	}
 	
 	function reload_list() 
 	{
+/*
 		var list = document.getElementById("status_list");
 		output = "";
 		for (key in localStorage) {
 			output = output + "<p>" + localStorage[key] + "</p>\n";
 		}
 		list.innerHTML = output;
+*/
+		var ul = document.getElementById("status_list");
+		var newlist = document.createElement('li');
+		for (key in localStorage) {
+			newlist.innerHTML = localStorage[key];
+			ul.insertBefore(newlist, ul.firstChild);
+		}
 
 	}
 </script>
 </head>
 
-<body>
+<body onload="reload_list()">
         <h1>Fecebook</h1>
         <div id="nav">
                 <ul>
@@ -51,7 +59,7 @@
                 </ul>
         </div>
         <h2 id="fullname">Barney Gumble</h2>
-        <h3>What are you thinking about? <input type="text" id="msg" name="msg" size="30" onload="reload_list()" onchange="update_feed()"/></h3>
+        <h3>What are you thinking about? <input type="text" id="msg" name="msg" size="30" onchange="update_feed()"/></h3>
         <h3>Updates</h3>
         <div id="status">
 		<ul id="status_list">			
