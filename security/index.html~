@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title> Security Analysis </title>
+  </head>
+
+  <body>
+    <h1>Security Analysis of 2048 Score Center</h1>
+    <h2>Introduction</h2>
+    The purpose of this activity is to expose security vulnerabilities in a fellow student's 2048 score center. <br/><br/>
+    The score center is a list of high scores from players who have played this student's modified 2048 game. <br/><br/>
+    <h2>Methodology</h2>
+    One of the tools used to discover vulnerabiilities was curl which was used to send requests with embedded scripts.<br/><br/>
+    Curl was also used to send spoofed scores to the app to create false records.<br/><br/>
+
+
+    <h2>Abstract of Findings</h2>
+    The score center does not check to see if information coming in is a potentially malicious script. It also does not do any user validation, so it is possible to submit false scores to the app.<br/><br/>
+
+    <h2>Issues Found</h2>
+    - Cross Site Scripting<br/>
+    This issue was found at the app's submit.json. This issue is very severe since malicious scripts could do anything from stealing all user information to crashing the app.<br/><br/>
+    The following curl command was used to inject the script: <br/>
+    <img src="Screenshot from 2014-04-23 19:07:48.png" alt="curl screenshot"><br/>
+    This injection causes the site to automatically redirect to the infamous NYANCAT site. This security issue was found with the help of Ming's hacking of everyone's 2048 game center.<br/>
+    The following shows the result of the attack (which should hopefully appear by the time of grading):
+    <img src="nyanhack.png" alt="nyan screenshot"><br/>
+    To resolve this issue, the app should include this line to automatically parse the request body to get rid of angle brackets: <br/><br/>
+    app.use(express.bodyParser());<br/><br/>
+
+    - Database injection<br/>
+    This issue was also at the app's submit.json. This issue is not quite as severe as the vulnerability to cross site scripting but is still serious since this means that malicious clients can enter false data into the records.<br/><br/>
+    When I found out that user input was not being validated while doing the cross site scripting, I discovered that I could also send in any score I wanted to. Here is a screenshot of a spoofed score (with Ming also submitting a spoofed score):<br/><br/>
+    
+    
+  </body>
+
+</html>
